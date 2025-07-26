@@ -1,1 +1,1 @@
-// Alert data structures
+package models // Alert data structures

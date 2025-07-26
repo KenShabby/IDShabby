@@ -1,17 +1,13 @@
-// Packet data structures
-
+// Package models
 package models
 
 import (
 	"fmt"
 	"net"
 	"time"
-
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
 )
 
-// This struct will hold out packet info
+// PacketInfo struct will hold out packet info
 type PacketInfo struct {
 	Timestamp   time.Time `json:"timestamp"`
 	Interface   string    `json:"interface"`
@@ -19,8 +15,8 @@ type PacketInfo struct {
 	Protocol    string    `json:"protocol"`
 	SourceIP    net.IP    `json:"source_ip"`
 	DestIP      net.IP    `json:"dest_ip"`
-	SourcePort  int16     `json:"source_port,omitempty"`
-	DestPort    int16     `json:"dest_port,omitempty"`
+	SourcePort  int       `json:"source_port,omitempty"`
+	DestPort    int       `json:"dest_port,omitempty"`
 	Flags       []string  `json:"flags,omitempty"`
 	PayloadSize int       `json:"payload_size"`
 	RawData     []byte    `json:"-"`
@@ -34,7 +30,7 @@ type ConnectionKey struct {
 	DestPort   int16  `json:"dest_port"`
 }
 
-// Console output of the connection key
+// String will console output of the connection key
 func (ck ConnectionKey) String() string {
 	if ck.SourcePort > 0 && ck.DestPort > 0 {
 		return fmt.Sprintf("%s:%s:%d->%s:%d", ck.Protocol, ck.SourceIP,
@@ -43,7 +39,7 @@ func (ck ConnectionKey) String() string {
 	return fmt.Sprintf("%s:%s->%s", ck.Protocol, ck.SourceIP, ck.DestIP)
 }
 
-// Keep stats on our packets
+// PacketStats keeps stats on our packets
 type PacketStats struct {
 	TotalPackets   int64            `json:"total_packets"`
 	PacketsByProto map[string]int64 `json:"packets_by_protocol"`
@@ -52,7 +48,7 @@ type PacketStats struct {
 	LastPacketTime time.Time        `json:"last_packet_time"`
 }
 
-// Do a constructor thingy
+// NewPacketStats - do a constructor thingy
 func NewPacketStats() *PacketStats {
 	return &PacketStats{
 		PacketsByProto: make(map[string]int64),

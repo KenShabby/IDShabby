@@ -1,1 +1,2 @@
-// IP Utility functions
+// Utils package
+package utils

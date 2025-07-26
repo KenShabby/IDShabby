@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"github.com/google/layers"
-	"github.com/google/pcap"
 
 	"IDShabby/internal/config"
 	"IDShabby/pkg/logger"
@@ -48,7 +47,7 @@ func (pc *PacketCapture) Start() error {
 
 	timeout, err := time.ParseDuration(pc.config.Timeout)
 	if err != nil {
-		timeout = time.second // default value
+		timeout = time.Second // default value
 	}
 
 	// Open pcap handle
@@ -83,7 +82,7 @@ func (pc *PacketCapture) Stop() {
 	pc.isRunning = false
 
 	if pc.handle != nil {
-		pc.handle.close()
+		pc.handle.Close()
 	}
 
 	pc.logger.WithField("interface", pc.interfaceName).Info("Packet capture stopped")
@@ -94,8 +93,18 @@ func (pc *PacketCapture) GetStats() *models.PacketStats {
 	return pc.stats
 }
 
+// GetPacketChannel returns the channel for receiving parsed packets
+func (pc *PacketCapture) GetPacketChannel() <-chan *models.PacketInfo {
+	return pc.packetChannel
+}
+
+// GetInterfaceName returns the interface name for this capture
+func (pc *PacketCapture) GetInterfaceName() string {
+	return pc.interfaceName
+}
+
 // Getter for running status
-func (pc *PacketCapture) IsRunning () bool {
+func (pc *PacketCapture) IsRunning() bool {
 	return pc.isRunning
 }
 
@@ -108,7 +117,7 @@ func (pc *PacketCapture) captureLoop() {
 
 	for {
 		select {
-		case <- pc.stopChannel:
+		case <-pc.stopChannel:
 			return
 
 		case packet := <-packetSource.Packets():
@@ -121,22 +130,21 @@ func (pc *PacketCapture) captureLoop() {
 			// Parse into our custom struct
 			packetInfo := pc.parsePacket(packet)
 			if packetInfo != nil {
-
 				pc.stats.Update(packetInfo)
 
 				// Send to processing channel
 				select {
 				case pc.packetChannel <- packetInfo:
 					// Success
-				case default:
+				default:
 					// Channel is full, log and drop packet
-					pc.logglogger.WithField("interface", pc.interfaceName).Warn(
+					pc.logger.WithField("interface", pc.interfaceName).Warn(
 						"Packet channel full, dropping packet")
 				}
 
 				// Log periodic stats
 				if packetCount%1000 == 0 {
-					pc.logger.PacketCaptured(pc.interfaceName, packpacketCount)
+					pc.logger.PacketCaptured(pc.interfaceName, packetCount)
 				}
 			}
 		}
@@ -144,7 +152,96 @@ func (pc *PacketCapture) captureLoop() {
 }
 
 // parsePacket converts a goPacket.Packet to our custom PacketInfo structure
-func (pc *PacketCapture) parsePacket(pacpacket gopacket.Packet) *models.PacketInfo  {
-	info := 
-	
+func (pc *PacketCapture) parsePacket(packet gopacket.Packet) *models.PacketInfo {
+	info := &models.PacketInfo{
+		Timestamp: packet.Metadata().Timestamp,
+		Interface: pc.interfaceName,
+		Length:    packet.Metadata().Length,
+		RawData:   packet.Data(),
+	}
+
+	// Parse IP layer
+	if ipLayer := packet.Layer(layers.LayerTypeIPv4); ipLayer != nil {
+		if ip, ok := ipLayer.(*layers.IPv4); ok {
+			info.SourceIP = ip.SrcIP
+			info.DestIP = ip.DstIP
+			info.Protocol = ip.Protocol.String()
+		}
+	} else if ipLayer := packet.Layer(layers.LayerTypeIPv6); ipLayer != nil {
+		if ip, ok := ipLayer.(*layers.IPv6); ok {
+			info.SourceIP = ip.SrcIP
+			info.DestIP = ip.DstIP
+			info.Protocol = ip.NextHeader.String()
+		}
+	}
+
+	// Parse Transport Layer
+	if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
+		if tcp, ok := tcpLayer.(*layers.TCP); ok {
+			info.SourcePort = int(tcp.SrcPort)
+			info.DestPort = int(tcp.DstPort)
+			info.Protocol = "TCP"
+			info.PayloadSize = len(tcp.Payload)
+
+			// Parse TCP flags
+			info.Flags = pc.parseTCPFlags(tcp)
+		}
+	} else if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
+		if udp, ok := udpLayer.(*layers.UDP); ok {
+			info.SourcePort = int(udp.SrcPort)
+			info.DestPort = int(udp.DstPort)
+			info.Protocol = "UDP"
+			info.PayloadSize = len(udp.Payload)
+		}
+	} else if icmpLayer := packet.Layer(layers.LayerTypeICMPv4); icmpLayer != nil {
+		info.Protocol = "ICMP"
+	}
+
+	// If we couldn't determine protocol, use generic
+	if info.Protocol == "" {
+		info.Protocol = "Unknown"
+	}
+
+	return info
+}
+
+// Parse the TCP Flags
+func (pc *PacketCapture) parseTCPFlags(tcp *layers.TCP) []string {
+	var flags []string
+
+	if tcp.FIN {
+		flags = append(flags, "FIN")
+	}
+	if tcp.SYN {
+		flags = append(flags, "SYN")
+	}
+	if tcp.RST {
+		flags = append(flags, "RST")
+	}
+	if tcp.PSH {
+		flags = append(flags, "PSH")
+	}
+	if tcp.ACK {
+		flags = append(flags, "ACK")
+	}
+	if tcp.URG {
+		flags = append(flags, "URG")
+	}
+
+	return flags
+}
+
+// SetBPFFilter sets a Berkeley Packet Filter for selective packet capture
+func (pc *PacketCapture) SetBPFFilter(filter string) error {
+	if pc.handle == nil {
+		return fmt.Errorf("packet capture not started")
+	}
+
+	err := pc.handle.SetBPFFilter(filter)
+	if err != nil {
+		return fmt.Errorf("failed to set BPF filter '%s': %w", filter, err)
+	}
+
+	pc.logger.WithField("filter", filter).Info("BPF filter applied")
+	return nil
 }
