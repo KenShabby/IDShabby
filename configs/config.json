@@ -1,0 +1,42 @@
+{
+  "interfaces": [
+    {
+      "name": "wlan0",
+      "promiscuous": true,
+      "timeout": "1s",
+      "buffer_size": 1024
+    }
+  ],
+  "detection": {
+    "port_scan": {
+      "enabled": true,
+      "threshold": 10,
+      "time_window": "30s",
+      "severity": "high"
+    },
+    "brute_force": {
+      "enabled": true,
+      "failed_attempts": 5,
+      "time_window": "60s",
+      "severity": "critical"
+    },
+    "traffic_anomaly": {
+      "enabled": true,
+      "bytes_per_second_threshold": 1000000,
+      "packets_per_second_threshold": 1000,
+      "time_window": "10s"
+    }
+  },
+  "alerting": {
+    "log_file": "logs/alerts.json",
+    "console_output": true,
+    "pretty_print": false,
+    "dedup_window": "300s",
+    "max_alerts_per_minute": 100
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "file": "logs/ids.json"
+  }
+}

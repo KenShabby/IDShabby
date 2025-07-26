@@ -1,0 +1,42 @@
+{
+  "signature_rules": [
+    {
+      "id": "SQL_INJECTION_ATTEMPT",
+      "name": "SQL Injection Detection",
+      "pattern": "(?i)(union|select|insert|delete|drop|create|alter).*['\"]",
+      "protocol": "http",
+      "severity": "high",
+      "enabled": true
+    },
+    {
+      "id": "SSH_BRUTE_FORCE",
+      "name": "SSH Brute Force Attack",
+      "port": 22,
+      "failed_attempts": 5,
+      "time_window": "120s",
+      "severity": "critical",
+      "enabled": true
+    }
+  ],
+  "anomaly_rules": [
+    {
+      "id": "UNUSUAL_TRAFFIC_VOLUME",
+      "name": "Unusual Traffic Volume",
+      "type": "traffic_threshold",
+      "threshold": {
+        "bytes_per_second": 10000000,
+        "duration": "30s"
+      },
+      "severity": "medium",
+      "enabled": true
+    }
+  ],
+  "whitelist": {
+    "ip_addresses": [
+      "192.168.1.1",
+      "10.0.0.1"
+    ],
+    "ports": [22, 80, 443],
+    "protocols": ["icmp"]
+  }
+}
