@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+
 	/* Startup Process
 
 	1. Process command line flags
@@ -30,6 +31,7 @@ func main() {
 	// Command line flags
 	configPath := flag.String("config", "configs/config.json", "Path to configuration file")
 	listInterfaces := flag.Bool("list-interfaces", false, "List available network interfaces")
+	generateConfig := flag.Bool("generate-config", false, "Generate default configuration file")
 	flag.Parse()
 
 	// Load configuration
@@ -65,18 +67,18 @@ func main() {
 
 	// Handle config generation
 	// FIX THIS TO PICK CORRECT INTERFACE! - curently I'm just shuting down non-suitable interfaces
-	generateConfig := flag.Bool("generate-config", false, "Generate default configuration file")
 	if *generateConfig {
 		if err := generateDefaultConfig(*configPath, interfaceManager); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to generate config: %v\n", err)
 			os.Exit(1)
 		}
 		fmt.Printf("Default configuration generated at: %s\n", *configPath)
-		fmt.Println("Please review and customize the configuration before running the IDS.")
+		fmt.Println("Please review and customize the \"name\" field with your" +
+			"correct network interface before running the IDS.")
 		return
 	}
 
-	log.Info("Starting Intrusion Detection System")
+	fmt.Println("Starting Intrusion Detection System")
 
 	// Command line option to list available interfaces for use
 	if *listInterfaces {

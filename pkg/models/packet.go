@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// PacketInfo struct will hold out packet info
+// PacketInfo struct will hold our packet info
 type PacketInfo struct {
 	Timestamp   time.Time `json:"timestamp"`
 	Interface   string    `json:"interface"`

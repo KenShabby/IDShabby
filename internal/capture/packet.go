@@ -230,18 +230,3 @@ func (pc *PacketCapture) parseTCPFlags(tcp *layers.TCP) []string {
 
 	return flags
 }
-
-// SetBPFFilter sets a Berkeley Packet Filter for selective packet capture
-func (pc *PacketCapture) SetBPFFilter(filter string) error {
-	if pc.handle == nil {
-		return fmt.Errorf("packet capture not started")
-	}
-
-	err := pc.handle.SetBPFFilter(filter)
-	if err != nil {
-		return fmt.Errorf("failed to set BPF filter '%s': %w", filter, err)
-	}
-
-	pc.logger.WithField("filter", filter).Info("BPF filter applied")
-	return nil
-}

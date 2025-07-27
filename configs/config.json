@@ -1,7 +1,7 @@
 {
   "interfaces": [
     {
-      "name": "wlan0",
+      "name": "en0",
       "promiscuous": true,
       "timeout": "1s",
       "buffer_size": 1024
@@ -35,8 +35,10 @@
     "max_alerts_per_minute": 100
   },
   "logging": {
-    "level": "info",
+    "level": "debug",
     "format": "json",
-    "file": "logs/ids.json"
+    "file": "logs/ids.json",
+    "console": true,
+    "pretty_print": true
   }
 }

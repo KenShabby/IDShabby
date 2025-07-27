@@ -2,6 +2,7 @@ package logger
 
 import (
 	"io"
+	"maps"
 	"os"
 	"path/filepath"
 	"time"
@@ -134,7 +135,7 @@ func (l *Logger) SessionTracked(sessionID, sourceIP, destIP string, protocol str
 	}).Debug("Network session tracked")
 }
 
-func (l *Logger) DetectionTriggered(ruleName, sourceIP string, severity string, details map[string]interface{}) {
+func (l *Logger) DetectionTriggered(ruleName, sourceIP string, severity string, details map[string]any) {
 	fields := logrus.Fields{
 		"component":  "detector",
 		"rule_name":  ruleName,
@@ -144,23 +145,19 @@ func (l *Logger) DetectionTriggered(ruleName, sourceIP string, severity string, 
 	}
 
 	// Add additional details
-	for key, value := range details {
-		fields[key] = value
-	}
+	maps.Copy(fields, details)
 
 	l.WithFields(fields).Warn("Detection rule triggered")
 }
 
-func (l *Logger) StatisticsUpdate(component string, stats map[string]interface{}) {
+func (l *Logger) StatisticsUpdate(component string, stats map[string]any) {
 	fields := logrus.Fields{
 		"component":  component,
 		"event_type": "statistics_update",
 	}
 
 	// Add statistics
-	for key, value := range stats {
-		fields[key] = value
-	}
+	maps.Copy(fields, stats)
 
 	l.WithFields(fields).Info("Statistics updated")
 }
@@ -174,7 +171,7 @@ func (l *Logger) ErrorOccurred(component, operation string, err error) {
 	}).Error("Operation failed")
 }
 
-func (l *Logger) PerformanceMetric(component, metric string, value interface{}, unit string) {
+func (l *Logger) PerformanceMetric(component, metric string, value any, unit string) {
 	l.WithFields(logrus.Fields{
 		"component":    component,
 		"metric_name":  metric,
