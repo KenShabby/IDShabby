@@ -13,7 +13,7 @@ import (
 	"IDShabby/pkg/models"
 )
 
-// PacketCapture handles the capturing of network traffic
+// PacketCapture handles the structure of capturing network traffic
 type PacketCapture struct {
 	interfaceName string
 	config        config.InterfaceConfig

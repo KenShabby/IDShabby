@@ -66,7 +66,9 @@ func main() {
 	}
 
 	// Handle config generation
-	// FIX THIS TO PICK CORRECT INTERFACE! - curently I'm just shuting down non-suitable interfaces
+	// TODO: FIX THIS TO PICK CORRECT INTERFACE! - curently I'm just shuting down
+	// non-suitable interfaces or manually editing config.json with the correct
+	// interface for the system.
 	if *generateConfig {
 		if err := generateDefaultConfig(*configPath, interfaceManager); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to generate config: %v\n", err)
