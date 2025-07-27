@@ -1,3 +1,4 @@
+// Package logger - log interesting packets with the help of logrus
 package logger
 
 import (
@@ -79,7 +80,7 @@ func NewLogger(config Config) (*Logger, error) {
 	return &Logger{log}, nil
 }
 
-// Structured logging methods for IDS-specific events
+// PacketCaptured - logging methods for IDS-specific events
 func (l *Logger) PacketCaptured(interfaceName string, packetCount int64) {
 	l.WithFields(logrus.Fields{
 		"component":    "capture",
