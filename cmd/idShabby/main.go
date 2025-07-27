@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"slices"
 	"syscall"
 	"time"
 
@@ -14,6 +15,18 @@ import (
 )
 
 func main() {
+	/* Startup Process
+
+	1. Process command line flags
+	2. Load configuration file
+	3. Initialize logger
+	4. Initialize interface manager
+	5. Generate configuration
+	6. List interfaces
+	7. Start packet capture
+
+	*/
+
 	// Command line flags
 	configPath := flag.String("config", "configs/config.json", "Path to configuration file")
 	listInterfaces := flag.Bool("list-interfaces", false, "List available network interfaces")
@@ -25,6 +38,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Failed to load configuration: %v\n", err)
 		os.Exit(1)
 	}
+
+	fmt.Fprintf(os.Stdout, "Configuration loaded...\n")
 
 	// Initialize logger
 	log, err := logger.NewLogger(logger.Config{
@@ -39,6 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Fprintf(os.Stdout, "Logger initialized...\n")
 	log.ConfigLoaded(*configPath)
 
 	// Initialize interface manager
@@ -48,6 +64,7 @@ func main() {
 	}
 
 	// Handle config generation
+	// FIX THIS TO PICK CORRECT INTERFACE! - curently I'm just shuting down non-suitable interfaces
 	generateConfig := flag.Bool("generate-config", false, "Generate default configuration file")
 	if *generateConfig {
 		if err := generateDefaultConfig(*configPath, interfaceManager); err != nil {
@@ -60,7 +77,8 @@ func main() {
 	}
 
 	log.Info("Starting Intrusion Detection System")
-	// Handle interface listing
+
+	// Command line option to list available interfaces for use
 	if *listInterfaces {
 		fmt.Println("Available network interfaces:")
 		suitable := interfaceManager.GetSuitableInterfaces()
@@ -70,11 +88,9 @@ func main() {
 				status = "UP"
 			}
 			recommended := ""
-			for _, s := range suitable {
-				if s == name {
-					recommended = " (RECOMMENDED)"
-					break
-				}
+			if slices.Contains(suitable, name) {
+				recommended = " (RECOMMENDED)"
+				break
 			}
 			fmt.Printf("  %s (%s) - %s - %v%s\n", name, info.Description, status, info.Addresses, recommended)
 		}
@@ -112,14 +128,14 @@ func main() {
 		log.Fatal("No interfaces available for packet capture")
 	}
 
-	// Print statistics every 30 seconds
-	ticker := time.NewTicker(30 * time.Second)
+	// Print statistics at a reasonable rate
+	ticker := time.NewTicker(10 * time.Second)
 	go func() {
 		for range ticker.C {
 			for _, capture := range captures {
 				stats := capture.GetStats()
-				log.WithFields(map[string]interface{}{
-					"interface":     capture.GetInterfaceName(), // You'll need to expose this
+				log.WithFields(map[string]any{
+					"interface":     capture.GetInterfaceName(),
 					"total_packets": stats.TotalPackets,
 					"bytes_total":   stats.BytesTotal,
 					"protocols":     stats.PacketsByProto,
@@ -140,42 +156,12 @@ func main() {
 	ticker.Stop()
 }
 
-// loadOrCreateConfig loads existing config or creates a default one
-func loadOrCreateConfig(configPath string, interfaceManager *capture.InterfaceManager) (*config.Config, error) {
-	// Try to load existing config
-	if cfg, err := config.LoadConfig(configPath); err == nil {
-		// Validate that configured interfaces still exist
-		if err := validateConfigInterfaces(cfg, interfaceManager); err != nil {
-			fmt.Printf("Warning: Configuration validation failed: %v\n", err)
-			fmt.Println("Consider regenerating config with --generate-config")
-		}
-		return cfg, nil
-	}
-
-	// Config doesn't exist, offer to create it
-	fmt.Printf("Configuration file not found: %s\n", configPath)
-	fmt.Print("Would you like to generate a default configuration? (y/N): ")
-
-	var response string
-	fmt.Scanln(&response)
-
-	if response == "y" || response == "Y" {
-		if err := generateDefaultConfig(configPath, interfaceManager); err != nil {
-			return nil, fmt.Errorf("failed to generate default config: %w", err)
-		}
-		fmt.Printf("Default configuration created at: %s\n", configPath)
-		fmt.Println("Please review the configuration and run the program again.")
-		os.Exit(0)
-	}
-
-	return nil, fmt.Errorf("configuration required to proceed")
-}
-
 // generateDefaultConfig creates a sensible default configuration
 func generateDefaultConfig(configPath string, interfaceManager *capture.InterfaceManager) error {
 	// Get suitable interfaces
 	suitableInterfaces := interfaceManager.GetSuitableInterfaces()
-
+	fmt.Println("suitableInterfaces:")
+	fmt.Fprintln(os.Stdout, suitableInterfaces)
 	// Create interface configs for suitable interfaces
 	var interfaceConfigs []config.InterfaceConfig
 
@@ -240,29 +226,12 @@ func generateDefaultConfig(configPath string, interfaceManager *capture.Interfac
 	return defaultConfig.SaveConfig(configPath)
 }
 
-// validateConfigInterfaces checks if configured interfaces are still available
-func validateConfigInterfaces(cfg *config.Config, interfaceManager *capture.InterfaceManager) error {
-	var unavailableInterfaces []string
-
-	for _, ifaceConfig := range cfg.Interfaces {
-		if err := interfaceManager.ValidateInterface(ifaceConfig.Name); err != nil {
-			unavailableInterfaces = append(unavailableInterfaces, ifaceConfig.Name)
-		}
-	}
-
-	if len(unavailableInterfaces) > 0 {
-		return fmt.Errorf("configured interfaces not available: %v", unavailableInterfaces)
-	}
-
-	return nil
-}
-
 // processPackets handles packets from a capture instance
 func processPackets(packetCapture *capture.PacketCapture, log *logger.Logger) {
 	for packet := range packetCapture.GetPacketChannel() {
 		// For now, just log interesting packets
 		if packet.Protocol == "TCP" && (packet.DestPort == 22 || packet.DestPort == 80 || packet.DestPort == 443) {
-			log.WithFields(map[string]interface{}{
+			log.WithFields(map[string]any{
 				"protocol":     packet.Protocol,
 				"source_ip":    packet.SourceIP.String(),
 				"dest_ip":      packet.DestIP.String(),
