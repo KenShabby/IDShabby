@@ -12,7 +12,7 @@ to settle for just logging packets for this weekend project and expand on the
 statistical analysis later.
 
 Installation and running:
-  - (Install go)[https://go.dev/doc/install]
+  - [Install go](https://go.dev/doc/install)
   - Clone this repo
   - `go run cmd/IDShabby/main.go` or if you need additional permissions:
   - `sudo go run cmd/IDShabby/main.go`
