@@ -22,8 +22,8 @@ func main() {
 	2. Load configuration file
 	3. Initialize logger
 	4. Initialize interface manager
-	5. Generate configuration
-	6. List interfaces
+	5. Generate configuration (if not supplied)
+	6. List interfaces (if flagged on command line)
 	7. Start packet capture
 
 	*/
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	// Handle config generation
-	// TODO: FIX THIS TO PICK CORRECT INTERFACE! - curently I'm just shuting down
+	// TODO: fix this to pick correct interface! - curently I'm just shuting down
 	// non-suitable interfaces or manually editing config.json with the correct
 	// interface for the system.
 	if *generateConfig {
@@ -132,7 +132,7 @@ func main() {
 		log.Fatal("No interfaces available for packet capture")
 	}
 
-	// Print statistics at a reasonable rate
+	// Log statistics at a reasonable rate
 	ticker := time.NewTicker(10 * time.Second)
 	go func() {
 		for range ticker.C {
@@ -213,7 +213,7 @@ func generateDefaultConfig(configPath string, interfaceManager *capture.Interfac
 		Alerting: config.AlertingConfig{
 			LogFile:            "logs/alerts.json",
 			ConsoleOutput:      true,
-			PrettyPrint:        false,
+			PrettyPrint:        true,
 			DedupWindow:        "300s", // 5 minutes
 			MaxAlertsPerMinute: 100,
 		},
@@ -222,7 +222,7 @@ func generateDefaultConfig(configPath string, interfaceManager *capture.Interfac
 			Format:      "json",
 			File:        "logs/ids.json",
 			Console:     true,
-			PrettyPrint: false,
+			PrettyPrint: true,
 		},
 	}
 

@@ -1,3 +1,4 @@
+// Package config - structures for attack/anomaly types
 package config
 
 import (

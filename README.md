@@ -6,7 +6,10 @@ You will most likely need to run this as root to have monitoring access to your
 network devices in promiscuous mode.
 
 So far, I have the interface up and receiving packets. Output is being logged.
-Nothing really interesting is happening until I work on the alerting system.
+Nothing really interesting is happening until I work on the alerting system. As
+the packet analysis is beyond my current level of knowledge, I'll probably have
+to settle for just logging packets for this weekend project and expand on the
+statistical analysis later.
 
 Next Steps:
   - Allow user to manually choose their interface from the command line or an 

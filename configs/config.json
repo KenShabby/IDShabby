@@ -12,7 +12,7 @@
       "enabled": true,
       "threshold": 10,
       "time_window": "30s",
-      "severity": "high"
+      "severity": "medium"
     },
     "brute_force": {
       "enabled": true,
@@ -30,7 +30,7 @@
   "alerting": {
     "log_file": "logs/alerts.json",
     "console_output": true,
-    "pretty_print": false,
+    "pretty_print": true,
     "dedup_window": "300s",
     "max_alerts_per_minute": 100
   },
