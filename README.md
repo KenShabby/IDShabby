@@ -11,6 +11,14 @@ the packet analysis is beyond my current level of knowledge, I'll probably have
 to settle for just logging packets for this weekend project and expand on the
 statistical analysis later.
 
+Installation and running:
+  - (Install go)[https://go.dev/doc/install]
+  - Clone this repo
+  - `go run cmd/IDShabby/main.go` or if you need additional permissions:
+  - `sudo go run cmd/IDShabby/main.go`
+
+So far, output will go by default to STDOUT and logs/ids.json.
+
 Next Steps:
   - Allow user to manually choose their interface from the command line or an 
     in app menu selection.
