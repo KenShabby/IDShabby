@@ -15,17 +15,22 @@ func main() {
 	}
 
 	// List devices
-	for _, device := range devices {
-		fmt.Println(device)
+	fmt.Println("Found the following interfaces:")
+	for i, device := range devices {
+		fmt.Printf("%d: %s\n", i, device.Name)
 	}
 
-	device := devices[0].Name
+	// Prompt user for interface choice
+	fmt.Printf("Choose an interface to monitor: ")
+	var interfaceChoice int
+	fmt.Scanln(&interfaceChoice)
+	fmt.Printf("interfaceChoice is: %d\n", interfaceChoice)
+	device := devices[int(interfaceChoice)].Name
 
 	handle, err := pcap.OpenLive(device, 65536, true, pcap.BlockForever)
 	if err != nil {
 		fmt.Println("Could not open the device for capture")
 	}
-
 	defer handle.Close()
 
 	fmt.Printf("Listening on interface: %s...\n", device)
