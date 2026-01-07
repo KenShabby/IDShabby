@@ -2,21 +2,20 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 )
 
 type PacketStats struct {
-	TotalPackets	int
-	TCPPackets		int
-	UDPPackets		int
-	ICMPPackets		int
-	BytesReceived	int64
+	TotalPackets  int
+	TCPPackets    int
+	UDPPackets    int
+	ICMPPackets   int
+	BytesReceived int64
 }
 
-
 func main() {
-
 	// Gather available devices
 	devices, err := pcap.FindAllDevs()
 	if err != nil {
