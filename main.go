@@ -49,5 +49,6 @@ func main() {
 
 	for packet := range packetSource.Packets() {
 		fmt.Println(packet)
+		packetLogger(packet)
 	}
 }
