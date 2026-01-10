@@ -11,12 +11,17 @@ import (
 
 type Packet struct {
 	SourceIP   string
-	SourcePort uint16
 	DestIP     string
+	SourcePort uint16
 	DestPort   uint16
 	Protocol   string
 	Payload    []byte
-	Timestamp  time.Time
+
+	Timestamp time.Time
+
+	// IDS specific
+	ThreatLevel int
+	Anomaly     bool
 }
 
 type PacketStats struct {
@@ -41,11 +46,9 @@ func main() {
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
-	var myPackets []Packet
-
 	for packet := range packetSource.Packets() {
 		p := extractPacketInfo(packet)
-		fmt.Println(p)
+		fmt.Println(string(p.Payload))
 		packetLogger(packet)
 	}
 }
@@ -70,7 +73,6 @@ func extractPacketInfo(packet gopacket.Packet) *Packet {
 		p.DestPort = uint16(tcp.DstPort)
 		p.Payload = tcp.Payload
 	}
-
 	return p
 }
 
