@@ -55,13 +55,19 @@ func main() {
 		packetLogger(p.SourceIP)
 		packetLogger(p.DestIP)
 		packetStats.TotalPackets++
+		if tcpLayer := packet.Layer(layers.LayerTypeTCP); tcpLayer != nil {
+			packetStats.TCPPackets++
+		}
+		if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
+			packetStats.UDPPackets++
+		}
 		count++
 		if count >= maxPackets {
 			break
 		}
 	}
 
-	printPacketStats(packetStats)
+	packetStats.printPacketStats()
 }
 
 func extractPacketInfo(packet gopacket.Packet) *Packet {
@@ -111,7 +117,7 @@ func networkDeviceSelect() string {
 	return device
 }
 
-func printPacketStats(ps *PacketStats) {
+func (ps *PacketStats) printPacketStats() {
 	fmt.Println("Packet stats:")
 	fmt.Printf("Total packets received: %v\n", ps.TotalPackets)
 	fmt.Printf("Total TCP packets: %v\n", ps.TCPPackets)
