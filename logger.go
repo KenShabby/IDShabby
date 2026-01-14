@@ -14,6 +14,7 @@ func packetLogger(v any) error {
 	}
 	defer file.Close()
 
+	log.SetFlags(0)
 	log.SetOutput(file)
 
 	log.Println(v)

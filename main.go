@@ -45,12 +45,23 @@ func main() {
 	fmt.Printf("Listening on interface: %s...\n", device)
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	packetStats := &PacketStats{}
+
+	maxPackets := 100
+	count := 0
 
 	for packet := range packetSource.Packets() {
 		p := extractPacketInfo(packet)
-		fmt.Println(string(p.Payload))
-		packetLogger(packet)
+		packetLogger(p.SourceIP)
+		packetLogger(p.DestIP)
+		packetStats.TotalPackets++
+		count++
+		if count >= maxPackets {
+			break
+		}
 	}
+
+	printPacketStats(packetStats)
 }
 
 func extractPacketInfo(packet gopacket.Packet) *Packet {
@@ -98,4 +109,13 @@ func networkDeviceSelect() string {
 	device := devices[int(interfaceChoice)].Name
 
 	return device
+}
+
+func printPacketStats(ps *PacketStats) {
+	fmt.Println("Packet stats:")
+	fmt.Printf("Total packets received: %v\n", ps.TotalPackets)
+	fmt.Printf("Total TCP packets: %v\n", ps.TCPPackets)
+	fmt.Printf("Total UDP packets: %v\n", ps.UDPPackets)
+	fmt.Printf("Total ICMP packets: %v\n", ps.ICMPPackets)
+	fmt.Printf("Total bytes received: %v\n", ps.BytesReceived)
 }
