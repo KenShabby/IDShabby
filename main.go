@@ -61,6 +61,10 @@ func main() {
 		if udpLayer := packet.Layer(layers.LayerTypeUDP); udpLayer != nil {
 			packetStats.UDPPackets++
 		}
+		if icmpLayer := packet.Layer(layers.LayerTypeICMPv4); icmpLayer != nil {
+			packetStats.ICMPPackets++
+		}
+		packetStats.BytesReceived += int64(len(packet.Data()))
 		count++
 		if count >= maxPackets {
 			break
