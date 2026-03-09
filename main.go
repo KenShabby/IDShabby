@@ -34,9 +34,9 @@ type PacketStats struct {
 
 func main() {
 	device := networkDeviceSelect()
-	snapshot_len := int32(1600)
+	snapshotLen := int32(1600)
 	promiscuousMode := true
-	handle, err := pcap.OpenLive(device, snapshot_len, promiscuousMode, pcap.BlockForever)
+	handle, err := pcap.OpenLive(device, snapshotLen, promiscuousMode, pcap.BlockForever)
 	if err != nil {
 		fmt.Println("Could not open the device for capture")
 	}
